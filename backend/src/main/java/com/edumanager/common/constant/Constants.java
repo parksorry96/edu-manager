@@ -1,6 +1,6 @@
-package com.edumanager.common;
+package com.edumanager.common.constant;
 
-public class Constants {
+public final class Constants {
     // JWT
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
