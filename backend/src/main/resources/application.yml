@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: edu-manager
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/edu_manager}
+    username: ${DB_USERNAME:edu_admin}
+    password: ${DB_PASSWORD:edu_password_2024}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+   hibernate:
+    ddl-auto: update # 개발 시에는 update, 운영에서는 validate
+    properties:
+      hibernate:
+        # PostgreSQL 방언 설정
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        # Sequence 관련 설정
+        id:
+          new_generator_mappings: true
+        jdbc:
+          # 배치 처리 성능 향상
+          batch_size: 25
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${jwt.issuer}
+          audiences: ${jwt.audience}
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis_password_2024}
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 2000
+        one-indexed-parameters: false  # 0부터 시작하는 페이지 번호 사용
+        page-parameter: page
+        size-parameter: size
+        sort:
+          sort-parameter: sort
+mvc:
+  problemdetails:
+    enabled: true
+
+jwt:
+  issuer: edu-manager
+  audience: edu-manager-api
+  private-key-path: classpath:keys/private_key.pem
+  public-key-path: classpath:keys/public_key.pem
+  access-token-validity: PT24H  # 24시간
+  refresh-token-validity: P7D   # 7일
+  authorities-claim: authorities
+  user-id-claim: userId
+  email-claim: email
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on-param
+    include-exception: false
+
+logging:
+  file:
+    path: ./logs
+  level:
+    root: INFO 
