@@ -1,73 +1,482 @@
+# ===================================================================
+# Spring Boot 애플리케이션 설정
+# ===================================================================
+
 spring:
   application:
     name: edu-manager
+  
+  # ===================================================================
+  # 데이터베이스 설정
+  # ===================================================================
   datasource:
-    url: ${DB_URL:jdbc:postgresql://postgres:5432/edu_manager}
-    username: ${DB_USERNAME:edu_admin}
-    password: ${DB_PASSWORD:edu_password_2024}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/edumanager}
+    username: ${DB_USERNAME:edumanager}
+    password: ${DB_PASSWORD:edumanager}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: edu-manager-pool
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000      # 5분
+      connection-timeout: 30000  # 30초
+      max-lifetime: 1800000     # 30분
+      leak-detection-threshold: 60000  # 1분 (커넥션 누수 감지)
+  
+  # ===================================================================
+  # JPA/Hibernate 설정
+  # ===================================================================
   jpa:
-   hibernate:
-    ddl-auto: update # 개발 시에는 update, 운영에서는 validate
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:validate}  # local: update, dev/prod: validate
     properties:
       hibernate:
-        # PostgreSQL 방언 설정
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        # Sequence 관련 설정
+        show_sql: false  # 로깅 레벨로 제어
+        # ID 생성 전략
         id:
           new_generator_mappings: true
+        # 배치 처리 성능 최적화
         jdbc:
-          # 배치 처리 성능 향상
           batch_size: 25
           batch_versioned_data: true
         order_inserts: true
         order_updates: true
+        # 2차 캐시 설정
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        # 통계 정보
+        generate_statistics: false
+    open-in-view: false  # OSIV 비활성화 (성능 향상)
+  
+  # ===================================================================
+  # Redis 설정
+  # ===================================================================
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis_password_2024}  # Redis 비밀번호가 있다면 여기에 설정
+      timeout: 6000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+        shutdown-timeout: 100ms
+      # 클러스터 설정 (필요시 주석 해제)
+      # cluster:
+      #   nodes:
+      #     - ${REDIS_CLUSTER_NODE1:localhost:7000}
+      #     - ${REDIS_CLUSTER_NODE2:localhost:7001}
+      #     - ${REDIS_CLUSTER_NODE3:localhost:7002}
+      #   max-redirects: 3
+      # Sentinel 설정 (고가용성 필요시 주석 해제)
+      # sentinel:
+      #   master: mymaster
+      #   nodes:
+      #     - ${REDIS_SENTINEL_NODE1:localhost:26379}
+      #     - ${REDIS_SENTINEL_NODE2:localhost:26380}
+      #     - ${REDIS_SENTINEL_NODE3:localhost:26381}
 
+    # ===================================================================
+    # 페이징 설정
+    # ===================================================================
+    web:
+      pageable:
+        default-page-size: 20
+        max-page-size: 2000
+        one-indexed-parameters: false  # 0부터 시작
+        page-parameter: page
+        size-parameter: size
+        sort:
+          sort-parameter: sort
+  
+  # ===================================================================
+  # 캐시 설정
+  # ===================================================================
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000      # 기본 TTL 10분
+      cache-null-values: false   # null 값 캐싱 비활성화
+      use-key-prefix: true
+      key-prefix: "edu-manager:"
+    cache-names:
+      - userCache
+      - courseCache
+      - enrollmentCache
+      - lectureCache
+  
+  # ===================================================================
+  # 보안 설정
+  # ===================================================================
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${jwt.issuer}
           audiences: ${jwt.audience}
-  data:
-    redis:
-      host: ${REDIS_HOST:redis}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:redis_password_2024}
-    web:
-      pageable:
-        default-page-size: 20
-        max-page-size: 2000
-        one-indexed-parameters: false  # 0부터 시작하는 페이지 번호 사용
-        page-parameter: page
-        size-parameter: size
-        sort:
-          sort-parameter: sort
-mvc:
-  problemdetails:
-    enabled: true
+  
+  # ===================================================================
+  # 국제화 설정
+  # ===================================================================
+  messages:
+    basename: ValidationMessages,messages  # 여러 메시지 파일 지원
+    encoding: UTF-8
+    cache-duration: 3600  # 1시간
+    fallback-to-system-locale: false
+    use-code-as-default-message: false
+  
+  # ===================================================================
+  # 웹 설정
+  # ===================================================================
+  web:
+    locale: ko_KR
+    locale-resolver: fixed
+    resources:
+      add-mappings: false  # 정적 리소스 매핑 비활성화 (API 서버)
+  
+  # ===================================================================
+  # MVC 설정
+  # ===================================================================
+  mvc:
+    problemdetails:
+      enabled: true  # RFC 7807 Problem Details 지원
+    throw-exception-if-no-handler-found: true
+    format:
+      date: yyyy-MM-dd
+      date-time: yyyy-MM-dd'T'HH:mm:ss
+      time: HH:mm:ss
+  
+  # ===================================================================
+  # 파일 업로드 설정
+  # ===================================================================
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
+      location: ${java.io.tmpdir}
 
+# ===================================================================
+# JWT 설정
+# ===================================================================
 jwt:
   issuer: edu-manager
   audience: edu-manager-api
   private-key-path: classpath:keys/private_key.pem
   public-key-path: classpath:keys/public_key.pem
-  access-token-validity: PT24H  # 24시간
-  refresh-token-validity: P7D   # 7일
+  access-token-validity: PT24H   # 24시간
+  refresh-token-validity: P7D    # 7일
   authorities-claim: authorities
   user-id-claim: userId
   email-claim: email
+  header: Authorization
+  prefix: "Bearer "
+
+# ===================================================================
+# 서버 설정
+# ===================================================================
 server:
-  port: ${PORT:8080}
+  port: ${SERVER_PORT:8080}
+  # servlet:
+  #   context-path: /api  # Swagger UI 접근을 위해 주석 처리
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  shutdown: graceful  # 우아한 종료
   error:
     include-message: always
     include-binding-errors: always
-    include-stacktrace: on-param
+    include-stacktrace: on_param
     include-exception: false
+    whitelabel:
+      enabled: false
+  # Tomcat 설정
+  tomcat:
+    accept-count: 100
+    max-connections: 8192
+    max-threads: 200
+    min-spare-threads: 10
+    connection-timeout: 20000
+    accesslog:
+      enabled: false
+      directory: logs
+      pattern: "%h %l %u %t \"%r\" %s %b %D"
+      prefix: access_log
+      suffix: .log
+  # HTTP/2 지원
+  http2:
+    enabled: true
+  # 압축 설정
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 1024
 
+# ===================================================================
+# 로깅 설정
+# ===================================================================
 logging:
-  file:
-    path: ./logs
   level:
-    root: INFO 
+    root: INFO
+    com.edumanager: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG
+    com.zaxxer.hikari: DEBUG
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%15.15t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"
+  file:
+    name: logs/edu-manager.log
+    max-size: 10MB
+    max-history: 30
+    total-size-cap: 1GB
+    clean-history-on-start: false
+  logback:
+    rollingpolicy:
+      file-name-pattern: logs/edu-manager-%d{yyyy-MM-dd}.%i.gz
+
+# ===================================================================
+# Actuator 설정 (모니터링)
+# ===================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers,caches
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      show-components: when_authorized
+      probes:
+        enabled: true
+    loggers:
+      enabled: true
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  info:
+    git:
+      mode: full
+
+# ===================================================================
+# CORS 설정
+# ===================================================================
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  allowed-headers: "*"
+  exposed-headers: Authorization,Content-Type,X-Total-Count
+  allow-credentials: true
+  max-age: 3600
+
+# ===================================================================
+# SpringDoc OpenAPI (Swagger) 설정
+# ===================================================================
+springdoc:
+  # API 문서 경로 설정
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+    groups:
+      enabled: true
+  
+  # Swagger UI 설정
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    # config-url: /v3/api-docs/swagger-config  # 주석 처리
+    url: /v3/api-docs  # 직접 API 문서 URL 지정
+    urls-primary-name: all-api  # 기본 그룹 설정
+    # UI 설정
+    display-request-duration: true
+    display-operation-id: true
+    deep-linking: true
+    default-models-expand-depth: 1
+    default-model-expand-depth: 1
+    doc-expansion: none
+    filter: true
+    show-extensions: true
+    show-common-extensions: true
+    disable-swagger-default-url: true
+    # 그룹 표시 순서
+    groups-order: DESC
+    # Try it out 기본 활성화
+    try-it-out-enabled: true
+    # 요청 시 파라미터 정렬
+    sort-tags-alphabetically: true
+    
+  # 패키지 스캔 설정
+  packages-to-scan: com.edumanager
+  paths-to-match: /**
+  
+  # 기본 경로 설정
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  
+  # 캐시 설정
+  cache:
+    disabled: false
+  
+  # 모델 및 보안 스키마 자동 생성
+  auto-tag-classes: true
+  model-and-view-allowed: false
+  
+  # 기본 응답 메시지 제거
+  override-with-generic-response: false
+  
+  # null 값 표시
+  writer-with-default-pretty-printer: true
+  
+  # Swagger UI가 API 문서를 찾을 수 있도록 설정
+  show-actuator: false
+  use-fqn: false
+
+# ===================================================================
+# 애플리케이션 커스텀 설정
+# ===================================================================
+app:
+  # 파일 업로드
+  file:
+    upload-dir: ${FILE_UPLOAD_DIR:./uploads}
+    allowed-extensions: jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,ppt,pptx,zip
+    max-size: 10485760  # 10MB
+  
+  # 이메일 설정
+  mail:
+    enabled: ${MAIL_ENABLED:false}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    from: ${MAIL_FROM:noreply@edumanager.com}
+    subject-prefix: "[EduManager] "
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+  
+  # API 문서
+  api:
+    title: EduManager API
+    description: 교육 관리 시스템 REST API
+    version: 1.0.0
+    terms-of-service: https://edumanager.com/terms
+    contact:
+      name: EduManager Team
+      email: support@edumanager.com
+      url: https://edumanager.com
+  
+  # 비즈니스 로직 설정
+  business:
+    # 페이징
+    pagination:
+      default-page-size: 20
+      max-page-size: 100
+    # 수강신청
+    enrollment:
+      max-retry-attempts: 3
+      lock-timeout: 5000  # 5초
+    # 강의
+    lecture:
+      max-students-per-class: 50
+      min-students-to-open: 5
+
+# ===================================================================
+# 환경별 설정 (프로파일)
+# ===================================================================
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+logging:
+  level:
+    com.edumanager: DEBUG
+    org.springframework.security: DEBUG
+springdoc:
+  swagger-ui:
+    enabled: true
+    try-it-out-enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+springdoc:
+  swagger-ui:
+    enabled: true
+    try-it-out-enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  data:
+    redis:
+      cluster:
+        nodes:
+          - ${REDIS_CLUSTER_NODE1}
+          - ${REDIS_CLUSTER_NODE2}
+          - ${REDIS_CLUSTER_NODE3}
+        max-redirects: 3
+logging:
+  level:
+    root: WARN
+    com.edumanager: INFO
+server:
+  tomcat:
+    accesslog:
+      enabled: true
+springdoc:
+  swagger-ui:
+    enabled: false  # 운영 환경에서는 Swagger UI 비활성화
+  api-docs:
+    enabled: false  # API 문서도 비활성화

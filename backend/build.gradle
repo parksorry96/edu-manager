@@ -44,3 +44,8 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// 개발 환경에서 기본적으로 local 프로파일 사용
+bootRun {
+    args = ['--spring.profiles.active=local']
+}

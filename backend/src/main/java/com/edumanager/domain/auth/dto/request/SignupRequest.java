@@ -1,6 +1,7 @@
 package com.edumanager.domain.auth.dto.request;
 
-import com.edumanager.common.validation.ValidationConstants;
+import com.edumanager.common.constant.AppConstants;
+import com.edumanager.common.constant.ValidationMessages;
 import com.edumanager.common.validation.annotation.PasswordMatches;
 import com.edumanager.common.validation.annotation.ValidPassword;
 import com.edumanager.common.validation.annotation.ValidPhone;
@@ -11,34 +12,38 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@PasswordMatches
+@PasswordMatches(message = ValidationMessages.PASSWORD_NOT_MATCH)
 public class SignupRequest {
-    @NotBlank(message = ValidationConstants.Messages.EMAIL_REQUIRED)
-    @Email(message = ValidationConstants.Messages.EMAIL_INVALID)
-    @Size(max = ValidationConstants.Size.EMAIL_MAX)
+    
+    @NotBlank(message = ValidationMessages.EMAIL_REQUIRED)
+    @Email(message = ValidationMessages.EMAIL_INVALID)
+    @Size(max = AppConstants.Validation.Size.EMAIL_MAX, 
+          message = ValidationMessages.EMAIL_SIZE)
     private String email;
 
-    @NotBlank(message = ValidationConstants.Messages.PASSWORD_REQUIRED)
-    @ValidPassword // 커스텀 비밀번호 검증
-    @Size(min = ValidationConstants.Size.PASSWORD_MIN,
-            max = ValidationConstants.Size.PASSWORD_MAX)
+    @NotBlank(message = ValidationMessages.PASSWORD_REQUIRED)
+    @ValidPassword(message = ValidationMessages.PASSWORD_INVALID)
+    @Size(min = AppConstants.Validation.Size.PASSWORD_MIN,
+          max = AppConstants.Validation.Size.PASSWORD_MAX,
+          message = ValidationMessages.PASSWORD_SIZE)
     private String password;
 
-    @NotBlank(message = ValidationConstants.Messages.PASSWORD_CONFIRM_REQUIRED)
+    @NotBlank(message = ValidationMessages.PASSWORD_CONFIRM_REQUIRED)
     private String passwordConfirm;
 
-    @NotBlank(message = ValidationConstants.Messages.NAME_REQUIRED)
-    @Pattern(regexp = ValidationConstants.Patterns.NAME,
-            message = ValidationConstants.Messages.NAME_INVALID)
-    @Size(min = ValidationConstants.Size.NAME_MIN,
-            max = ValidationConstants.Size.NAME_MAX)
+    @NotBlank(message = ValidationMessages.NAME_REQUIRED)
+    @Pattern(regexp = AppConstants.Validation.Pattern.NAME,
+            message = ValidationMessages.NAME_INVALID)
+    @Size(min = AppConstants.Validation.Size.NAME_MIN,
+          max = AppConstants.Validation.Size.NAME_MAX,
+          message = ValidationMessages.NAME_SIZE)
     private String name;
 
-    @ValidPhone // 커스텀 전화번호 검증 (선택사항)
-    @Size(max = ValidationConstants.Size.PHONE_MAX)
+    @ValidPhone(message = ValidationMessages.PHONE_INVALID)
+    @Size(max = AppConstants.Validation.Size.PHONE_MAX,
+          message = ValidationMessages.PHONE_SIZE)
     private String phone;
 
-    @NotNull(message = ValidationConstants.Messages.ROLE_REQUIRED)
+    @NotNull(message = ValidationMessages.ROLE_REQUIRED)
     private UserRole role;
-
 }

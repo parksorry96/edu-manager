@@ -1,6 +1,6 @@
 package com.edumanager.common.validation.validator;
 
-import com.edumanager.common.validation.ValidationConstants;
+import com.edumanager.common.constant.AppConstants;
 import com.edumanager.common.validation.annotation.ValidPhone;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -14,7 +14,7 @@ public class PhoneValidator implements ConstraintValidator<ValidPhone, String> {
 
     @Override
     public void initialize(ValidPhone constraintAnnotation) {
-        this.pattern=Pattern.compile(ValidationConstants.Patterns.PHONE_NUMBER);
+        this.pattern=Pattern.compile(AppConstants.Validation.Pattern.PHONE);
         this.required=constraintAnnotation.required();
     }
 
