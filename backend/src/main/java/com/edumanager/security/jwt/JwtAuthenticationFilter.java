@@ -48,20 +48,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = resolveToken(request);
-
         String requestPath = request.getRequestURI();
+        
         if(shouldNotFilter(requestPath)){
             filterChain.doFilter(request,response);
             return;
         }
 
-        if (StringUtils.hasText(token) && jwtTokenService.validateToken(token)) {
-            try {
-                Authentication authentication = jwtAuthenticationConverter.convert(jwtDecoder.decode(token));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } catch (Exception e) {
-                log.error("Could not set user authentication in security context", e);
+        // 로그아웃 요청인 경우 토큰이 있으면 검증하지만 실패해도 진행
+        boolean isLogoutRequest = requestPath.equals("/api/auth/logout");
+        
+        if (StringUtils.hasText(token)) {
+            if (jwtTokenService.validateToken(token)) {
+                try {
+                    Authentication authentication = jwtAuthenticationConverter.convert(jwtDecoder.decode(token));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.debug("JWT 인증 성공: {}", authentication.getName());
+                } catch (Exception e) {
+                    log.error("JWT 인증 변환 실패: {}", e.getMessage());
+                    if (!isLogoutRequest) {
+                        log.debug("인증 실패로 인한 SecurityContext 미설정");
+                    }
+                }
+            } else {
+                log.debug("JWT 토큰 검증 실패 - 토큰이 유효하지 않음");
+                if (isLogoutRequest) {
+                    log.debug("로그아웃 요청이므로 토큰 검증 실패를 무시하고 진행");
+                }
             }
+        } else {
+            log.debug("Authorization 헤더에 JWT 토큰이 없음");
         }
 
         filterChain.doFilter(request, response);

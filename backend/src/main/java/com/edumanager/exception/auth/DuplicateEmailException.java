@@ -1,4 +1,4 @@
-package com.edumanager.exception;
+package com.edumanager.exception.auth;
 
 import com.edumanager.common.constant.AppConstants;
 import com.edumanager.exception.common.BusinessException;

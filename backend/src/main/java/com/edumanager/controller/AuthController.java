@@ -157,7 +157,13 @@ public class AuthController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        log.debug("로그아웃 요청: username={}", userDetails.getUsername());
+        // userDetails가 null인 경우 처리
+        if (userDetails == null) {
+            log.warn("로그아웃 요청: userDetails가 null입니다.");
+            // 토큰만으로도 로그아웃 처리 가능하도록 진행
+        } else {
+            log.debug("로그아웃 요청: username={}", userDetails.getUsername());
+        }
 
         // "Bearer " 접두사 제거
         String token = authHeader.substring(BEARER_PREFIX.length());
@@ -186,6 +192,17 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> getCurrentUser(
             @Parameter(hidden = true)
             @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (userDetails == null) {
+            log.warn("현재 사용자 정보 조회: userDetails가 null입니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<String>builder()
+                            .success(false)
+                            .code("UNAUTHORIZED")
+                            .message("인증 정보를 찾을 수 없습니다.")
+                            .data(null)
+                            .build());
+        }
 
         log.debug("현재 사용자 정보 조회: username={}", userDetails.getUsername());
 

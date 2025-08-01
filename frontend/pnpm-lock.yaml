@@ -20,6 +20,9 @@ importers:
       '@mui/material':
         specifier: ^7.2.0
         version: 7.2.0(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.1))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.1.8)(react@19.1.1))(@types/react@19.1.8)(react@19.1.1))(@types/react@19.1.8)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      Unstable_grid2:
+        specifier: link:@mui/material/Unstable_grid2
+        version: link:@mui/material/Unstable_grid2
       axios:
         specifier: ^1.11.0
         version: 1.11.0

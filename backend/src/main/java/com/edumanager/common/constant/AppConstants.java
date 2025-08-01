@@ -33,7 +33,8 @@ public final class AppConstants {
         public static final long ACCESS_TOKEN_EXPIRE_SECONDS = 86400L; // 24시간
         public static final long REFRESH_TOKEN_EXPIRE_SECONDS = 604800L; // 7일
 
-        private Jwt() {}
+        private Jwt() {
+        }
     }
 
     // ======================== Redis 관련 상수 ========================
@@ -50,7 +51,18 @@ public final class AppConstants {
         public static final long PASSWORD_RESET_TTL = 1800L; // 30분
         public static final long LOGIN_ATTEMPT_TTL = 3600L; // 1시간
 
-        private Redis() {}
+
+        public static final String PREFIX_SMS_CODE = "sms:code:";
+        public static final String PREFIX_SMS_VERIFIED = "sms:verified:";
+        public static final String PREFIX_SMS_COUNT = "sms:count:";
+
+        // TTL 추가
+        public static final long SMS_CODE_TTL = 300L; // 5분
+        public static final long SMS_VERIFIED_TTL = 1800L; // 30분
+
+
+        private Redis() {
+        }
     }
 
     // ======================== 유효성 검증 상수 ========================
@@ -73,7 +85,8 @@ public final class AppConstants {
             // 학번/사번: 숫자와 하이픈만 허용
             public static final String ID_NUMBER = "^[0-9-]{5,20}$";
 
-            private Pattern() {}
+            private Pattern() {
+            }
         }
 
         // 크기 제한
@@ -101,10 +114,12 @@ public final class AppConstants {
             public static final int DESCRIPTION_MAX = 1000;
             public static final int CONTENT_MAX = 5000;
 
-            private Size() {}
+            private Size() {
+            }
         }
 
-        private Validation() {}
+        private Validation() {
+        }
     }
 
     // ======================== API 응답 메시지 ========================
@@ -120,7 +135,8 @@ public final class AppConstants {
             public static final String USER_UPDATE = "사용자 정보가 수정되었습니다.";
             public static final String USER_DELETE = "사용자가 삭제되었습니다.";
 
-            private Success() {}
+            private Success() {
+            }
         }
 
         // 에러 메시지
@@ -151,10 +167,12 @@ public final class AppConstants {
             public static final String INTERNAL_SERVER_ERROR = "서버 오류가 발생했습니다.";
             public static final String SERVICE_UNAVAILABLE = "서비스를 일시적으로 사용할 수 없습니다.";
 
-            private Error() {}
+            private Error() {
+            }
         }
 
-        private Message() {}
+        private Message() {
+        }
     }
 
     // ======================== API 경로 ========================
@@ -195,7 +213,8 @@ public final class AppConstants {
                 AUTH_RESET_PASSWORD
         };
 
-        private Api() {}
+        private Api() {
+        }
     }
 
     // ======================== 보안 관련 상수 ========================
@@ -213,7 +232,8 @@ public final class AppConstants {
         public static final int MAX_LOGIN_ATTEMPTS = 5;
         public static final long LOGIN_ATTEMPT_BLOCK_DURATION = 1800L; // 30분
 
-        private Security() {}
+        private Security() {
+        }
     }
 
     // ======================== 페이징 관련 상수 ========================
@@ -226,7 +246,8 @@ public final class AppConstants {
         public static final String PARAM_SIZE = "size";
         public static final String PARAM_SORT = "sort";
 
-        private Paging() {}
+        private Paging() {
+        }
     }
 
     // ======================== 날짜 형식 상수 ========================
@@ -236,8 +257,22 @@ public final class AppConstants {
         public static final String TIME = "HH:mm:ss";
         public static final String YEAR_MONTH = "yyyy-MM";
 
-        private DateFormat() {}
+        private DateFormat() {
+        }
     }
+
+    public static final class Sms {
+        public static final int CODE_LENGTH = 6;
+        public static final long CODE_TTL_MINUTES = 5;
+        public static final long VERIFIED_TTL_MINUTES = 30;
+        public static final long SEND_INTERVAL_SECONDS = 60;
+        public static final int MAX_SEND_COUNT_PER_DAY = 5;
+
+        private Sms() {
+        }
+
+    }
+
 }
 
 

@@ -2,7 +2,6 @@ package com.edumanager.domain.auth;
 
 import static com.edumanager.common.constant.AppConstants.*;
 
-import com.edumanager.common.constant.AppConstants;
 import com.edumanager.domain.auth.dto.request.LoginRequest;
 import com.edumanager.domain.auth.dto.request.SignupRequest;
 import com.edumanager.domain.auth.dto.response.LoginResponse;
@@ -10,8 +9,8 @@ import com.edumanager.domain.auth.dto.response.SignupResponse;
 import com.edumanager.domain.auth.dto.response.TokenResponse;
 import com.edumanager.domain.user.entity.User;
 import com.edumanager.domain.user.repository.UserRepository;
-import com.edumanager.exception.DuplicateEmailException;
-import com.edumanager.exception.UserNotFoundException;
+import com.edumanager.exception.auth.DuplicateEmailException;
+import com.edumanager.exception.auth.UserNotFoundException;
 import com.edumanager.security.jwt.JwtTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

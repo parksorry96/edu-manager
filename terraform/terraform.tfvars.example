@@ -1,0 +1,8 @@
+# terraform/terraform.tfvars.example
+# Terraform 변수 예제 파일
+# 실제 사용시 terraform.tfvars로 복사하고 값을 수정하세요
+
+aws_region    = "ap-northeast-2"
+project_name  = "edu-manager"
+environment   = "prod"
+key_pair_name = "your-ec2-key-pair-name"  # AWS Console에서 생성한 키페어 이름
