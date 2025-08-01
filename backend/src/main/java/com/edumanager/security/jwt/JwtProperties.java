@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Service;
+import com.edumanager.common.constant.AppConstants;
 
 import java.time.Duration;
 
@@ -22,7 +22,7 @@ public class JwtProperties {
     private String audience = "edu-manager-api";
 
     // JWT Claims
-    private String authoritiesClaim = "authorities";
-    private String userIdClaim = "userId";
-    private String emailClaim = "email";
+    private String authoritiesClaim = AppConstants.Jwt.CLAIM_AUTHORITIES;
+    private String userIdClaim = AppConstants.Jwt.CLAIM_USER_ID;
+    private String emailClaim = AppConstants.Jwt.CLAIM_EMAIL;
 }

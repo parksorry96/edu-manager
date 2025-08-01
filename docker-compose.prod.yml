@@ -1,0 +1,54 @@
+# docker-compose.prod.yml
+# Production용 Docker Compose 설정 (EC2에서 백엔드만 실행)
+version: '3.8'
+
+services:
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: edu-manager-backend
+    restart: unless-stopped
+    environment:
+      # Spring Profiles
+      SPRING_PROFILES_ACTIVE: prod
+      
+      # Database (RDS PostgreSQL)
+      DB_URL: jdbc:postgresql://${RDS_ENDPOINT}:5432/${DB_NAME}
+      DB_USERNAME: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      
+      # Redis (ElastiCache)
+      REDIS_HOST: ${REDIS_ENDPOINT}
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: 86400000  # 24시간
+      
+      # JPA
+      JPA_DDL_AUTO: validate
+      
+      # Logging
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_EDUMANAGER: INFO
+      
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    networks:
+      - edu-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  edu-network:
+    driver: bridge

@@ -15,6 +15,7 @@ logs/
 # Environment Files
 .env
 .env.*
+!.env.production.example
 
 # Java / Gradle
 .gradle/
@@ -41,5 +42,14 @@ Thumbs.db
 # Others
 log/
 .log
+
+# Docker volumes
+postgres_data/
+redis_data/
+uploads/
+
+# Deployment
+*.pem
+*.key
 
 CLAUDE.md

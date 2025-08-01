@@ -1,6 +1,6 @@
 package com.edumanager.common.validation.validator;
 
-import com.edumanager.common.validation.ValidationConstants;
+import com.edumanager.common.constant.AppConstants;
 import com.edumanager.common.validation.annotation.ValidPassword;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -12,7 +12,7 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
     private Pattern pattern;
     @Override
     public void initialize(ValidPassword constraintAnnotation) {
-        this.pattern=Pattern.compile(ValidationConstants.Patterns.PASSWORD);
+        this.pattern=Pattern.compile(AppConstants.Validation.Pattern.PASSWORD);
     }
 
     @Override

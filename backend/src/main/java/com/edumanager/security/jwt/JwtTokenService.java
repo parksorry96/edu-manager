@@ -1,13 +1,17 @@
 package com.edumanager.security.jwt;
 
-import com.edumanager.common.constant.Constants;
+import com.edumanager.common.constant.AppConstants;
+//import static com.edumanager.common.constant.AppConstants.*;
 import com.edumanager.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.security.interfaces.RSAPrivateKey;
@@ -24,7 +28,7 @@ public class JwtTokenService {
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
     private final JwtProperties jwtProperties;
-    private final RedisTemplate<String, String>  redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
     private final RSAPrivateKey rsaPrivateKey;
     private final RSAPublicKey rsaPublicKey;
 
@@ -61,14 +65,14 @@ public class JwtTokenService {
                 .subject(username)
                 .audience(List.of(jwtProperties.getAudience()))
                 .claim(jwtProperties.getUserIdClaim(), userId)
-                .claim("token_type", "refresh")
+                .claim(AppConstants.Jwt.CLAIM_TOKEN_TYPE, AppConstants.Jwt.TOKEN_TYPE_REFRESH)
                 .build();
 
         String refreshToken = this.jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
 
         // Redis에 저장
-        redisTemplate.opsForValue().set(
-                Constants.REFRESH_TOKEN_PREFIX + username,
+        stringRedisTemplate.opsForValue().set(
+                AppConstants.Redis.PREFIX_REFRESH_TOKEN + username,
                 refreshToken,
                 jwtProperties.getRefreshTokenValidity().toMillis(),
                 TimeUnit.MILLISECONDS
@@ -82,7 +86,7 @@ public class JwtTokenService {
             Jwt jwt = jwtDecoder.decode(token);
 
             // 블랙리스트 체크
-            Boolean isBlacklisted = redisTemplate.hasKey(Constants.BLACKLIST_PREFIX + token);
+            Boolean isBlacklisted = stringRedisTemplate.hasKey(AppConstants.Redis.PREFIX_BLACKLIST + token);
             return !isBlacklisted;
 
         } catch (JwtException e) {
@@ -101,8 +105,8 @@ public class JwtTokenService {
             long expirationTime = jwt.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
 
             if (expirationTime > 0) {
-                redisTemplate.opsForValue().set(
-                        Constants.BLACKLIST_PREFIX + token,
+                stringRedisTemplate.opsForValue().set(
+                        AppConstants.Redis.PREFIX_BLACKLIST + token,
                         "true",
                         expirationTime,
                         TimeUnit.MILLISECONDS
